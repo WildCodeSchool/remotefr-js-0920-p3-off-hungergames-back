@@ -6,9 +6,6 @@ const app = express();
 app.get('/', (req, res) => res.send('Express server is up and running!'));
 
 app.listen(port, (err) => {
-  if (err) {
-    console.error(err);
-  } else {
-    console.log(`Express server listening on ${port}`);
-  }
+  if (err) throw err;
+  process.stdout.write(`Express server listening on ${port}\n`);
 });
