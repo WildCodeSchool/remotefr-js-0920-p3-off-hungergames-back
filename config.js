@@ -4,4 +4,7 @@ require('dotenv').config();
 // e.g. DB connection settings
 module.exports = {
   port: process.env.PORT || 5000,
+  ROBOTOFF_API_URL: process.env.ROBOTOFF_API_URL,
+  OFF_API_URL: process.env.OFF_API_URL,
+  OFF_IMAGE_URL: process.env.OFF_IMAGE_URL,
 };
