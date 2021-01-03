@@ -28,6 +28,23 @@ const getImageRootURL = (barcode) => {
   return getImageUrl(splittedBarcode.join('/'));
 };
 
+const getImages = (data, barcode) => {
+  const product = data?.product;
+
+  const imagesDisplayUrl = [];
+  if (product?.images) {
+    const imageRootUrl = getImageRootURL(barcode);
+
+    for (const key of Object.keys(product.images)) {
+      if (!isNaN(key)) {
+        const imageUrl = `${imageRootUrl}/${key}.jpg`;
+        imagesDisplayUrl.push(imageUrl);
+      }
+    }
+  }
+  return imagesDisplayUrl;
+};
+
 module.exports = {
-  getImageRootURL,
+  getImages,
 };

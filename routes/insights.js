@@ -20,8 +20,8 @@ router.post('/annotate', (req, res) => {
   console.log('\nInsights/annotate: req.body :>> ', req.body);
 
   postAnnotate(req.body.insight_id, req.body.annotation)
-    .then((response) => {
-      res.json(response.data);
+    .then((data) => {
+      res.json(data);
     })
     .catch((err) => {
       res.status(404).json(err);

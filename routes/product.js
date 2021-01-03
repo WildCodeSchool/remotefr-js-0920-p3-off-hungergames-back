@@ -1,6 +1,6 @@
 const express = require('express');
 const { getInfoProduct } = require('../utils/requests_off');
-const { getImageRootURL } = require('../utils/utils');
+const { getImages } = require('../utils/utils');
 
 const router = express.Router();
 
@@ -8,31 +8,21 @@ router.get('/', (req, res) => {
   res.send('Need barcode');
 });
 
-router.get('/:barcode', async (req, res) => {
-  console.log('\nProduct: barcode :>> ', req.params.barcode);
-  if (req.query.fields === 'images')
-    return res.redirect(`./${req.params.barcode}/images`);
+router.get('/:barcode', (req, res) => {
+  const barcode = req.params.barcode;
+  const fields = req.query.fields;
 
-  const data = await getInfoProduct(req.params.barcode, req.query.fields);
-  res.json({ data });
-});
-
-router.get('/:barcode/images', async (req, res) => {
-  const data = await getInfoProduct(req.params.barcode, 'images');
-  const product = data?.product;
-
-  const imagesDisplayUrl = [];
-  if (product?.images) {
-    const imageRootUrl = getImageRootURL(req.params.barcode);
-
-    for (const key of Object.keys(product.images)) {
-      if (!isNaN(key)) {
-        const imageUrl = `${imageRootUrl}/${key}.jpg`;
-        imagesDisplayUrl.push(imageUrl);
-      }
-    }
-  }
-  res.json(imagesDisplayUrl);
+  console.log('\nProduct: :>> ', { barcode, fields });
+  getInfoProduct(barcode, fields)
+    .then((data) => {
+      if (fields === 'images') {
+        const imagesDisplayUrl = getImages(data, barcode);
+        res.json(imagesDisplayUrl);
+      } else res.json(data);
+    })
+    .catch((err) => {
+      res.status(404).json(err);
+    });
 });
 
 module.exports = router;

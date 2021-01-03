@@ -19,7 +19,9 @@ module.exports = {
       ),
     };
 
-    return axios(config);
+    return axios(config).then((result) => {
+      return result.data;
+    });
   },
 
   getQuestions(
