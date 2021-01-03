@@ -9,6 +9,19 @@ const removeEmptyKeys = (obj) => {
 };
 
 module.exports = {
+  postAnnotate(insightId, annotation) {
+    const config = {
+      method: 'post',
+      url: `${ROBOTOFF_API_URL}/insights/annotate`,
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      data: new URLSearchParams(
+        `insight_id=${insightId}&annotation=${annotation}&update=1`,
+      ),
+    };
+
+    return axios(config);
+  },
+
   getQuestions(
     count = 10,
     lang = 'fr',

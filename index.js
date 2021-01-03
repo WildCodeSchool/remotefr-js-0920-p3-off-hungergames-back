@@ -10,9 +10,13 @@ app.use(function (req, res, next) {
 
     if (origins_allowed.includes(origin)) {
       res.header('Access-Control-Allow-Origin', origin);
-    } else throw new Error(`CORS Same origin (${origin}): modify config.js`);
+      res.header('Access-Control-Allow-Methods', 'GET,POST');
+      res.header('Access-Control-Allow-Credentials', true);
+
+      next();
+    } else
+      res.status(403).send(`CORS Same origin (${origin}): modify config.js`);
   }
-  next();
 });
 
 app.get('/', (req, res) => res.send('Express server is up and running!'));
