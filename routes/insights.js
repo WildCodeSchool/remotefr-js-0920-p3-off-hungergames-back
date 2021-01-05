@@ -19,13 +19,15 @@ router.get('/', (req, res) => {
 router.post('/annotate', (req, res) => {
   console.log('\nInsights/annotate: req.body :>> ', req.body);
 
-  postAnnotate(req.body.insight_id, req.body.annotation)
-    .then((data) => {
-      res.json(data);
-    })
-    .catch((err) => {
-      res.status(404).json(err);
-    });
+  res.send('OK');
+  //TODO: a implementer avec la base de donnée
+  // postAnnotate(req.body.insight_id, req.body.annotation)
+  //   .then((data) => {
+  //     res.json(data);
+  //   })
+  //   .catch((err) => {
+  //     res.status(404).json(err);
+  //   });
 });
 
 module.exports = router;
