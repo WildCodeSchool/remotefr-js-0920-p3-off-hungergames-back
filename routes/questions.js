@@ -6,9 +6,9 @@ const router = express.Router();
 router.get('/', (req, res) => {
   console.log('\nQuestions: req.query :>> ', req.query);
 
-  const { count, lang, insight_types, value_tag, country } = req.query;
+  const { count, lang, insight_types, value_tag, country, sortBy } = req.query;
 
-  getQuestions(count, lang, insight_types, value_tag, country)
+  getQuestions(count, lang, insight_types, value_tag, country, sortBy)
     .then((data) => {
       res.json(data);
     })
