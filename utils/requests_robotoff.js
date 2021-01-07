@@ -1,8 +1,11 @@
+/* eslint-disable prefer-destructuring */
+/* eslint-disable no-console */
 const axios = require('axios');
 const { ROBOTOFF_API_URL } = require('../config');
 
 const removeEmptyKeys = (obj) => {
   Object.keys(obj).forEach(
+    // eslint-disable-next-line no-param-reassign
     (key) => (obj[key] === undefined || obj[key] === '') && delete obj[key],
   );
   return obj;
@@ -19,9 +22,7 @@ module.exports = {
       ),
     };
 
-    return axios(config).then((result) => {
-      return result.data;
-    });
+    return axios(config).then((result) => result.data);
   },
 
   getQuestions(

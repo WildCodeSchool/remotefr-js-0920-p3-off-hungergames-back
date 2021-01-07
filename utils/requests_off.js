@@ -9,8 +9,6 @@ module.exports = {
     }
     return axios
       .get(`${OFF_API_URL}/product/${barcode}.json`, { params })
-      .then((result) => {
-        return result.data;
-      });
+      .then((result) => result.data);
   },
 };
