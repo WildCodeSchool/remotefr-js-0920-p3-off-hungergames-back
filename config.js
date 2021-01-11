@@ -1,8 +1,17 @@
+const { Pool } = require('pg');
 require('dotenv').config();
 
 // Feel free to add your own settings,
 // e.g. DB connection settings
 const originsAllowed = ['http://localhost:8080'];
+
+const pool = new Pool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  port: process.env.DB_PORT || 5432,
+});
 
 module.exports = {
   port: process.env.PORT || 5000,
@@ -10,4 +19,5 @@ module.exports = {
   OFF_API_URL: process.env.OFF_API_URL,
   OFF_IMAGE_URL: process.env.OFF_IMAGE_URL,
   originsAllowed,
+  pool,
 };
