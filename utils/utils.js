@@ -14,9 +14,7 @@ const splitBarcode = (barcode) => {
   return [barcode];
 };
 
-const getImageUrl = (imagePath) => {
-  return combineURLs(OFF_IMAGE_URL, imagePath);
-};
+const getImageUrl = (imagePath) => combineURLs(OFF_IMAGE_URL, imagePath);
 
 const getImageRootURL = (barcode) => {
   const splittedBarcode = splitBarcode(barcode);
@@ -35,13 +33,16 @@ const getImages = (data, barcode) => {
   if (product?.images) {
     const imageRootUrl = getImageRootURL(barcode);
 
+    // eslint-disable-next-line no-restricted-syntax
     for (const key of Object.keys(product.images)) {
+      // eslint-disable-next-line no-restricted-globals
       if (!isNaN(key)) {
         const imageUrl = `${imageRootUrl}/${key}.jpg`;
         imagesDisplayUrl.push(imageUrl);
       }
     }
   }
+  console.log('imagesDisplayUrl :>> ', imagesDisplayUrl);
   return imagesDisplayUrl;
 };
 

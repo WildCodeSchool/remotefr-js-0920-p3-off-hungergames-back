@@ -44,7 +44,8 @@ module.exports = {
         }),
       })
       .then((result) => {
-        let questions = result.data.questions;
+        const questions = result.data.questions;
+        // eslint-disable-next-line no-param-reassign
         result.data.questions = questions.filter(
           (question) => question.source_image_url,
         );
