@@ -5,7 +5,7 @@ require('dotenv').config();
 // e.g. DB connection settings
 const originsAllowed = ['http://localhost:8080'];
 
-const pool = new Pool({
+const db = new Pool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
@@ -19,5 +19,5 @@ module.exports = {
   OFF_API_URL: process.env.OFF_API_URL,
   OFF_IMAGE_URL: process.env.OFF_IMAGE_URL,
   originsAllowed,
-  pool,
+  db,
 };
