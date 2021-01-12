@@ -1,5 +1,12 @@
 const combineURLs = require('axios/lib/helpers/combineURLs');
-const { OFF_IMAGE_URL } = require('../config');
+const { OFF_IMAGE_URL, nbConfirm } = require('../config');
+
+// Fonctions utils confirmation
+const checkConfirmationInsight = (row) => {
+  if (row.nb_true >= 1 + nbConfirm * (1 + row.nb_false)) return true;
+  if (row.nb_false >= 1 + nbConfirm * (1 + row.nb_true)) return true;
+  return false;
+};
 
 // Fonctions utils images
 const BARCODE_REGEX = /(...)(...)(...)(.*)$/;
@@ -42,10 +49,10 @@ const getImages = (data, barcode) => {
       }
     }
   }
-  console.log('imagesDisplayUrl :>> ', imagesDisplayUrl);
   return imagesDisplayUrl;
 };
 
 module.exports = {
   getImages,
+  checkConfirmationInsight,
 };

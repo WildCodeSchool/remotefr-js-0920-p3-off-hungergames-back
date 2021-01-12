@@ -4,6 +4,7 @@ require('dotenv').config();
 // Feel free to add your own settings,
 // e.g. DB connection settings
 const originsAllowed = ['http://localhost:8080'];
+const nbConfirm = 3;
 
 const db = new Pool({
   host: process.env.DB_HOST,
@@ -20,4 +21,5 @@ module.exports = {
   OFF_IMAGE_URL: process.env.OFF_IMAGE_URL,
   originsAllowed,
   db,
+  nbConfirm,
 };
