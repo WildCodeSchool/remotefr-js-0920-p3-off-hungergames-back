@@ -21,10 +21,12 @@ const createInsightId = async (insightId, annotation) => {
   return results;
 };
 
-const updateInsightId = async (insightId, columnName, annotation) => {
-  const querySQL = `UPDATE insight SET ${columnName} = $1 WHERE insight_id = $2`;
+const updateInsightId = async (insightId, columnName, value, isAnnotated) => {
+  let querySQL = `UPDATE insight SET ${columnName} = $1`;
+  if (isAnnotated) querySQL += `, is_annotated = true`;
+  querySQL += ` WHERE insight_id = $2`;
 
-  const results = await db.query(querySQL, [annotation, insightId]);
+  const results = await db.query(querySQL, [value, insightId]);
 
   return results;
 };
