@@ -20,9 +20,14 @@ app.use((req, res, next) => {
   return next();
 });
 
-app.get('/', (req, res) => res.send('Express server is up and running!'));
 app.use('/robotoff', robotoff);
 
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) =>
+  res.status(500).json({ error: err.toString() }),
+);
+
+app.get('/', (req, res) => res.send('Express server is up and running!'));
 app.listen(port, (err) => {
   if (err) throw err;
   process.stdout.write(`Express server listening on ${port}\n`);
