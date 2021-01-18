@@ -8,6 +8,7 @@ const {
   getInsightId,
   createInsightId,
   updateInsightId,
+  getInsightsAnnotated,
 } = require('../utils/requests_db');
 const { checkConfirmationInsight } = require('../utils/utils');
 
@@ -25,6 +26,11 @@ router.get('/', (req, res) => {
     'Post /annotate?insight_id=${insightId}&annotation=${annotation}&update=1`',
   );
 });
+
+router.get('/annotate', async (req, res) => {
+  const ids = await getInsightsAnnotated();
+  res.status(200).json(ids);
+})
 
 router.post('/annotate', async (req, res, next) => {
   const {

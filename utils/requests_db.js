@@ -1,5 +1,11 @@
 const { db } = require('../config');
 
+const getInsightsAnnotated = async () => {
+  const { rows } = await db.query('SELECT insight_id FROM insight where is_annotated');
+
+  return rows.map((el) => el.insight_id);
+}
+
 const getInsightId = async (insightId) => {
   const { rows } = await db.query(
     'SELECT * FROM insight WHERE insight_id = $1',
@@ -44,4 +50,5 @@ module.exports = {
   createInsightId,
   updateInsightId,
   deleteInsightId,
+  getInsightsAnnotated
 };
