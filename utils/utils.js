@@ -1,5 +1,12 @@
 const combineURLs = require('axios/lib/helpers/combineURLs');
-const { OFF_IMAGE_URL } = require('../config');
+const { OFF_IMAGE_URL, nbConfirm } = require('../config');
+
+// Fonctions utils confirmation
+const checkConfirmationInsight = (row) => {
+  if (row.nb_true >= 1 + nbConfirm * (1 + row.nb_false)) return true;
+  if (row.nb_false >= 1 + nbConfirm * (1 + row.nb_true)) return true;
+  return false;
+};
 
 // Fonctions utils images
 const BARCODE_REGEX = /(...)(...)(...)(.*)$/;
@@ -14,9 +21,7 @@ const splitBarcode = (barcode) => {
   return [barcode];
 };
 
-const getImageUrl = (imagePath) => {
-  return combineURLs(OFF_IMAGE_URL, imagePath);
-};
+const getImageUrl = (imagePath) => combineURLs(OFF_IMAGE_URL, imagePath);
 
 const getImageRootURL = (barcode) => {
   const splittedBarcode = splitBarcode(barcode);
@@ -35,7 +40,9 @@ const getImages = (data, barcode) => {
   if (product?.images) {
     const imageRootUrl = getImageRootURL(barcode);
 
+    // eslint-disable-next-line no-restricted-syntax
     for (const key of Object.keys(product.images)) {
+      // eslint-disable-next-line no-restricted-globals
       if (!isNaN(key)) {
         const imageUrl = `${imageRootUrl}/${key}.jpg`;
         imagesDisplayUrl.push(imageUrl);
@@ -47,4 +54,5 @@ const getImages = (data, barcode) => {
 
 module.exports = {
   getImages,
+  checkConfirmationInsight,
 };

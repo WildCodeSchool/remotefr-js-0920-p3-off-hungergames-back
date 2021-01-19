@@ -9,8 +9,8 @@ router.get('/', (req, res) => {
 });
 
 router.get('/:barcode', (req, res) => {
-  const barcode = req.params.barcode;
-  const fields = req.query.fields;
+  const { barcode } = req.params;
+  const { fields } = req.query;
 
   console.log('\nProduct: :>> ', { barcode, fields });
   getInfoProduct(barcode, fields)

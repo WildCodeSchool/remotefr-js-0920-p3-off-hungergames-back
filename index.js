@@ -1,14 +1,14 @@
 const express = require('express');
-const { port, origins_allowed } = require('./config');
+const { port, originsAllowed } = require('./config');
 const robotoff = require('./routes/robotoff');
 
 const app = express();
 
-app.use(function (req, res, next) {
+app.use((req, res, next) => {
   if (req.headers.origin) {
-    const origin = req.headers.origin;
+    const { origin } = req.headers;
 
-    if (origins_allowed.includes(origin)) {
+    if (originsAllowed.includes(origin)) {
       res.header('Access-Control-Allow-Origin', origin);
       res.header('Access-Control-Allow-Methods', 'GET,POST');
       res.header('Access-Control-Allow-Credentials', true);
@@ -17,12 +17,17 @@ app.use(function (req, res, next) {
         .status(403)
         .send(`CORS Same origin (${origin}): modify config.js`);
   }
-  next();
+  return next();
 });
 
-app.get('/', (req, res) => res.send('Express server is up and running!'));
 app.use('/robotoff', robotoff);
 
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) =>
+  res.status(500).json({ error: err.toString() }),
+);
+
+app.get('/', (req, res) => res.send('Express server is up and running!'));
 app.listen(port, (err) => {
   if (err) throw err;
   process.stdout.write(`Express server listening on ${port}\n`);
