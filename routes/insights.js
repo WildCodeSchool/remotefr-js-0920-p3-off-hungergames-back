@@ -9,6 +9,7 @@ const {
   createInsightId,
   updateInsightId,
   getInsightsAnnotated,
+  createInsightKeepId,
 } = require('../utils/requests_db');
 const { checkConfirmationInsight } = require('../utils/utils');
 
@@ -30,7 +31,7 @@ router.get('/', (req, res) => {
 router.get('/annotate', async (req, res) => {
   const ids = await getInsightsAnnotated();
   res.status(200).json(ids);
-})
+});
 
 router.post('/annotate', async (req, res, next) => {
   const {
@@ -48,11 +49,9 @@ router.post('/annotate', async (req, res, next) => {
     const confirm = checkConfirmationInsight(row);
     await updateInsightId(insightId, columnName, row[columnName], confirm);
     if (confirm) {
-      console.log('CONFIRMATION');
-      // postAnnotate(insightId, annotation).catch((err) => {
-      // TODO: prevoir table temporaire si err
-      //   console.log('postAnnotate: err :>> ', err);
-      // });
+      postAnnotate(insightId, annotation).catch((err) => {
+        createInsightKeepId(insightId, annotation);
+      });
     }
   }
 });
