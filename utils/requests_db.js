@@ -50,6 +50,14 @@ const deleteInsightId = async (insightId) => {
 
 // Table insight_keep
 
+const getInsightKeep = async () => {
+  const { rows } = await db.query(
+    'SELECT insight_id, annotate FROM insight_keep',
+  );
+
+  return rows;
+};
+
 const createInsightKeepId = async (insight_id, annotation) => {
   const results = await db.query(
     'INSERT INTO insight_keep (insight_id, annotate) VALUES ($1, $2)',
@@ -75,5 +83,6 @@ module.exports = {
   deleteInsightId,
   getInsightsAnnotated,
   createInsightKeepId,
+  getInsightKeep,
   deleteInsightKeepId,
 };
