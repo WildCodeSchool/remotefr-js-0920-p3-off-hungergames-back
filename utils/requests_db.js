@@ -1,10 +1,13 @@
 const { db } = require('../config');
 
+// Table insight
 const getInsightsAnnotated = async () => {
-  const { rows } = await db.query('SELECT insight_id FROM insight where is_annotated');
+  const { rows } = await db.query(
+    'SELECT insight_id FROM insight where is_annotated',
+  );
 
   return rows.map((el) => el.insight_id);
-}
+};
 
 const getInsightId = async (insightId) => {
   const { rows } = await db.query(
@@ -45,10 +48,32 @@ const deleteInsightId = async (insightId) => {
   return results;
 };
 
+// Table insight_keep
+
+const createInsightKeepId = async (insight_id, annotation) => {
+  const results = await db.query(
+    'INSERT INTO insight_keep (insight_id, annotate) VALUES ($1, $2)',
+    [insight_id, annotation],
+  );
+
+  return results;
+};
+
+const deleteInsightKeepId = async (insight_id) => {
+  const results = await db.query(
+    'DELETE FROM insight_keep WHERE insight_id = $1',
+    [insight_id],
+  );
+
+  return results;
+};
+
 module.exports = {
   getInsightId,
   createInsightId,
   updateInsightId,
   deleteInsightId,
-  getInsightsAnnotated
+  getInsightsAnnotated,
+  createInsightKeepId,
+  deleteInsightKeepId,
 };
