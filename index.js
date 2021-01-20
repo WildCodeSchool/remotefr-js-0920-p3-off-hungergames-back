@@ -1,6 +1,15 @@
 const express = require('express');
 const { port, originsAllowed } = require('./config');
 const robotoff = require('./routes/robotoff');
+const CronJob = require('cron').CronJob;
+
+// */2 * * * *
+console.log('Before job instantiation');
+const job = new CronJob('*/2 * * * *', function () {
+  console.log('CRON !!!');
+});
+console.log('After job instantiation');
+job.start();
 
 const app = express();
 
