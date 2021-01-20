@@ -25,10 +25,26 @@ CREATE TABLE insight (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-\dt;
-
--- create trigger 
-CREATE TRIGGER set_timestamp
+-- create trigger to insight
+CREATE TRIGGER set_timestamp_insight
 BEFORE UPDATE ON insight
 FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
+
+\dt;
+
+
+CREATE TABLE insight_keep (
+    ID SERIAL PRIMARY KEY,
+    insight_id VARCHAR(37) NOT NULL,
+    annotate INTEGER NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- create trigger to insight_keep
+CREATE TRIGGER set_timestamp_insight_keep
+BEFORE UPDATE ON insight_keep
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
