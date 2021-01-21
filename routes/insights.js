@@ -1,8 +1,6 @@
 /* eslint-disable no-console */
-/* eslint-disable no-unused-vars */
-/* eslint-disable no-template-curly-in-string */
 const express = require('express');
-const { db } = require('../config');
+const { matchedData } = require('express-validator');
 const {
   postInsightsAnnotate,
   validateFunction,
@@ -16,7 +14,6 @@ const {
   createInsightKeepId,
 } = require('../utils/requests_db');
 const { checkConfirmationInsight } = require('../utils/utils');
-const { matchedData } = require('express-validator');
 
 const router = express.Router();
 
@@ -29,6 +26,7 @@ router.use(express.json());
 
 router.get('/', (req, res) => {
   res.send(
+    // eslint-disable-next-line no-template-curly-in-string
     'Post /annotate?insight_id=${insightId}&annotation=${annotation}&update=1`',
   );
 });
