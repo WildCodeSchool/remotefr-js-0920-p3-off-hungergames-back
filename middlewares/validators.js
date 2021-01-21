@@ -1,4 +1,9 @@
-const { query, checkSchema, validationResult } = require('express-validator');
+const {
+  query,
+  checkSchema,
+  validationResult,
+  body,
+} = require('express-validator');
 
 const schemaQuestions = {
   sortBy: {
@@ -35,6 +40,11 @@ const getProductValidators = [
   query('fields').isString().optional(),
 ];
 
+const postInsightsAnnotate = [
+  body('insight_id').isString().isLength({ min: 36, max: 36 }),
+  body('annotation').isInt({ min: 0, max: 1 }),
+];
+
 const validateFunction = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty())
@@ -45,5 +55,6 @@ const validateFunction = (req, res, next) => {
 module.exports = {
   getQuestionsValidators,
   getProductValidators,
+  postInsightsAnnotate,
   validateFunction,
 };
