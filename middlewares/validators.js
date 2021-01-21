@@ -30,7 +30,7 @@ const schemaProduct = {
     in: 'params',
     matches: {
       options: [/^[0-9]{8,14}$/],
-      errorMessage: 'Invalid barcode - 8 digits',
+      errorMessage: 'Invalid barcode - 8..14 digits',
     },
   },
 };
