@@ -3,9 +3,7 @@ const { getQuestions } = require('../utils/requests_robotoff');
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  console.log('\nQuestions: req.query :>> ', req.query);
-
+router.get('/', (req, res, next) => {
   // eslint-disable-next-line camelcase
   const { count, lang, insight_types, value_tag, country, sortBy } = req.query;
 
@@ -14,7 +12,7 @@ router.get('/', (req, res) => {
       res.json(data);
     })
     .catch((err) => {
-      res.status(404).json(err);
+      res.status(404).json({ error: err.toString() });
     });
 });
 

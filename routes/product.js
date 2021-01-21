@@ -8,21 +8,20 @@ router.get('/', (req, res) => {
   res.send('Need barcode');
 });
 
-router.get('/:barcode', (req, res) => {
+router.get('/:barcode', (req, res, next) => {
   const { barcode } = req.params;
   const { fields } = req.query;
 
   console.log('\nProduct: :>> ', { barcode, fields });
   getInfoProduct(barcode, fields)
     .then((data) => {
-      if (fields === 'images') {
+      if (!data.status) res.status(404).json(data);
+      else if (fields === 'images') {
         const imagesDisplayUrl = getImages(data, barcode);
         res.json(imagesDisplayUrl);
       } else res.json(data);
     })
-    .catch((err) => {
-      res.status(404).json(err);
-    });
+    .catch(next);
 });
 
 module.exports = router;

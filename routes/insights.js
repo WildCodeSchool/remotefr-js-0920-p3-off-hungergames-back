@@ -28,9 +28,13 @@ router.get('/', (req, res) => {
   );
 });
 
-router.get('/annotate', async (req, res) => {
-  const ids = await getInsightsAnnotated();
-  res.status(200).json(ids);
+router.get('/annotate', async (req, res, next) => {
+  try {
+    const ids = await getInsightsAnnotated();
+    res.status(200).json(ids);
+  } catch (err) {
+    next(err);
+  }
 });
 
 router.post('/annotate', async (req, res, next) => {
@@ -38,21 +42,27 @@ router.post('/annotate', async (req, res, next) => {
     body: { insight_id: insightId, annotation },
   } = req;
 
-  res.send('OK');
+  try {
+    const row = await getInsightId(insightId);
+    if (!row) await createInsightId(insightId, annotation);
+    else if (!row.is_annotated) {
+      const columnName = +annotation === 1 ? 'nb_true' : 'nb_false';
+      row[columnName] += 1;
 
-  const row = await getInsightId(insightId);
-  if (!row) await createInsightId(insightId, annotation);
-  else if (!row.is_annotated) {
-    const columnName = +annotation === 1 ? 'nb_true' : 'nb_false';
-    row[columnName] += 1;
-
-    const confirm = checkConfirmationInsight(row);
-    await updateInsightId(insightId, columnName, row[columnName], confirm);
-    if (confirm) {
-      postAnnotate(insightId, annotation).catch((err) => {
-        createInsightKeepId(insightId, annotation);
-      });
+      const confirm = checkConfirmationInsight(row);
+      await updateInsightId(insightId, columnName, row[columnName], confirm);
+      if (confirm) {
+        postAnnotate(insightId, annotation).catch((err) => {
+          console.log('err :>> ', err.toString());
+          createInsightKeepId(insightId, annotation).catch((err2) => {
+            console.log('err2 :>> ', err2.toString());
+          });
+        });
+      }
     }
+    res.send('OK');
+  } catch (err) {
+    next(err);
   }
 });
 
