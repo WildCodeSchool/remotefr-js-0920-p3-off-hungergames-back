@@ -6,7 +6,7 @@ const schemaQuestions = {
     optional: { options: { nullable: true } },
     matches: {
       options: [/(random|popular)/],
-      errorMessage: 'Invalid sortBy [random|popular]',
+      errorMessage: 'Invalid sortBy - [random|popular]',
     },
   },
 };
@@ -20,6 +20,21 @@ const getQuestionsValidators = [
   checkSchema(schemaQuestions),
 ];
 
+const schemaProduct = {
+  barcode: {
+    in: 'params',
+    matches: {
+      options: [/^[0-9]{8}$/],
+      errorMessage: 'Invalid barcode - 8 digits',
+    },
+  },
+};
+
+const getProductValidators = [
+  checkSchema(schemaProduct),
+  query('fields').isString().optional(),
+];
+
 const validateFunction = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty())
@@ -29,5 +44,6 @@ const validateFunction = (req, res, next) => {
 
 module.exports = {
   getQuestionsValidators,
+  getProductValidators,
   validateFunction,
 };
