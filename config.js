@@ -5,6 +5,9 @@ require('dotenv').config();
 // e.g. DB connection settings
 const originsAllowed = [
   'http://localhost:8080',
+  'http://localhost:52540',
+  'https://test-hunger-games.netlify.app',
+  'https://dev-hunger-games.netlify.app',
   'https://remote-hungergames.jsrover.wilders.dev',
 ];
 const nbConfirm = 3;
