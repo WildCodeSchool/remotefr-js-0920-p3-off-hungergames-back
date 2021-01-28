@@ -20,7 +20,6 @@ router.get(
   (req, res, next) => {
     const { barcode, fields } = matchedData(req);
 
-    console.log('\nProduct: :>> ', { barcode, fields });
     getInfoProduct(barcode, fields)
       .then((data) => {
         if (!data.status) res.status(404).json(data);

@@ -3,13 +3,12 @@ require('dotenv').config();
 
 // Feel free to add your own settings,
 // e.g. DB connection settings
-const originsAllowed = [
-  'http://localhost:8080',
-  'http://localhost:52540',
-  'https://test-hunger-games.netlify.app',
-  'https://dev-hunger-games.netlify.app',
-  'https://remote-hungergames.jsrover.wilders.dev',
-];
+
+const isProd = process.env.NODE_ENV === 'production';
+const originsAllowed = isProd
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:8080'];
+
 const nbConfirm = 3;
 
 const db = new Pool({
