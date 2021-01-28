@@ -15,11 +15,12 @@ router.get('/:barcode', (req, res, next) => {
   console.log('\nProduct: :>> ', { barcode, fields });
   getInfoProduct(barcode, fields)
     .then((data) => {
-      if (!data.status) res.status(404).json(data);
-      else if (fields === 'images') {
+      if (!data.status) return res.status(404).json(data);
+      if (fields === 'images') {
         const imagesDisplayUrl = getImages(data, barcode);
-        res.json(imagesDisplayUrl);
-      } else res.json(data);
+        return res.json(imagesDisplayUrl);
+      }
+      return res.json(data);
     })
     .catch(next);
 });
