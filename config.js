@@ -3,7 +3,10 @@ require('dotenv').config();
 
 // Feel free to add your own settings,
 // e.g. DB connection settings
-const originsAllowed = ['http://localhost:8080'];
+const originsAllowed = [
+  'http://localhost:8080',
+  'https://remote-hungergames.jsrover.wilders.dev',
+];
 const nbConfirm = 3;
 
 const db = new Pool({

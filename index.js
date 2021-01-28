@@ -1,6 +1,10 @@
 const express = require('express');
 const { port, originsAllowed } = require('./config');
 const robotoff = require('./routes/robotoff');
+const { initCron } = require('./utils/cron');
+
+// init Cron
+initCron();
 
 const app = express();
 
