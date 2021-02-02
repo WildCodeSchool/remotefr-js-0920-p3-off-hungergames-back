@@ -1,11 +1,18 @@
+/* eslint-disable camelcase */
 const express = require('express');
+const { matchedData, query } = require('express-validator');
 const { getQuestions } = require('../utils/requests_robotoff');
+const {
+  getQuestionsValidators,
+  validateFunction,
+} = require('../middlewares/validators');
 
 const router = express.Router();
 
-router.get('/', (req, res, next) => {
-  // eslint-disable-next-line camelcase
-  const { count, lang, insight_types, value_tag, country, sortBy } = req.query;
+// eslint-disable-next-line no-unused-vars
+router.get('/', getQuestionsValidators, validateFunction, (req, res, next) => {
+  const dataQuery = matchedData(req, { location: query });
+  const { count, lang, insight_types, value_tag, country, sortBy } = dataQuery;
 
   getQuestions(count, lang, insight_types, value_tag, country, sortBy)
     .then((data) => {

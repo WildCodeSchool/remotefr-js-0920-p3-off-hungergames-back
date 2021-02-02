@@ -1,8 +1,10 @@
 /* eslint-disable no-console */
-/* eslint-disable no-unused-vars */
-/* eslint-disable no-template-curly-in-string */
 const express = require('express');
-const { db } = require('../config');
+const { matchedData } = require('express-validator');
+const {
+  postInsightsAnnotate,
+  validateFunction,
+} = require('../middlewares/validators');
 const { postAnnotate } = require('../utils/requests_robotoff');
 const {
   getInsightId,
@@ -24,6 +26,7 @@ router.use(express.json());
 
 router.get('/', (req, res) => {
   res.send(
+    // eslint-disable-next-line no-template-curly-in-string
     'Post /annotate?insight_id=${insightId}&annotation=${annotation}&update=1`',
   );
 });
@@ -37,33 +40,37 @@ router.get('/annotate', async (req, res, next) => {
   }
 });
 
-router.post('/annotate', async (req, res, next) => {
-  const {
-    body: { insight_id: insightId, annotation },
-  } = req;
+router.post(
+  '/annotate',
+  postInsightsAnnotate,
+  validateFunction,
+  async (req, res, next) => {
+    const data = matchedData(req);
+    const { insight_id: insightId, annotation } = data;
 
-  try {
-    const row = await getInsightId(insightId);
-    if (!row) await createInsightId(insightId, annotation);
-    else if (!row.is_annotated) {
-      const columnName = +annotation === 1 ? 'nb_true' : 'nb_false';
-      row[columnName] += 1;
+    try {
+      const row = await getInsightId(insightId);
+      if (!row) await createInsightId(insightId, annotation);
+      else if (!row.is_annotated) {
+        const columnName = +annotation === 1 ? 'nb_true' : 'nb_false';
+        row[columnName] += 1;
 
-      const confirm = checkConfirmationInsight(row);
-      await updateInsightId(insightId, columnName, row[columnName], confirm);
-      if (confirm) {
-        postAnnotate(insightId, annotation).catch((err) => {
-          console.log('err :>> ', err.toString());
-          createInsightKeepId(insightId, annotation).catch((err2) => {
-            console.log('err2 :>> ', err2.toString());
+        const confirm = checkConfirmationInsight(row);
+        await updateInsightId(insightId, columnName, row[columnName], confirm);
+        if (confirm) {
+          postAnnotate(insightId, annotation).catch((err) => {
+            console.log('err :>> ', err.toString());
+            createInsightKeepId(insightId, annotation).catch((err2) => {
+              console.log('err2 :>> ', err2.toString());
+            });
           });
-        });
+        }
       }
+      res.send('OK');
+    } catch (err) {
+      next(err);
     }
-    res.send('OK');
-  } catch (err) {
-    next(err);
-  }
-});
+  },
+);
 
 module.exports = router;

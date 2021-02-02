@@ -58,19 +58,19 @@ const getInsightKeep = async () => {
   return rows;
 };
 
-const createInsightKeepId = async (insight_id, annotation) => {
+const createInsightKeepId = async (insightId, annotation) => {
   const results = await db.query(
     'INSERT INTO insight_keep (insight_id, annotate) VALUES ($1, $2)',
-    [insight_id, annotation],
+    [insightId, annotation],
   );
 
   return results;
 };
 
-const deleteInsightKeepId = async (insight_id) => {
+const deleteInsightKeepId = async (insightId) => {
   const results = await db.query(
     'DELETE FROM insight_keep WHERE insight_id = $1',
-    [insight_id],
+    [insightId],
   );
 
   return results;
