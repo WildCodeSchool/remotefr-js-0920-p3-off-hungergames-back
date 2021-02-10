@@ -105,7 +105,7 @@ create_regular_user() {
 # Install Node.js from Nodesource official packages
 install_nodejs() {
   curl -sL https://deb.nodesource.com/setup_14.x | bash -
-  apt-get install -y nodejs
+  apt-get install -y nodejs >> install.log
   check_commands "nodejs npm"
   npm i -g pm2
   check_commands pm2
