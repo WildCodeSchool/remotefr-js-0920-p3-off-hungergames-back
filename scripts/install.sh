@@ -224,10 +224,46 @@ run_apps_install_script() {
   rm $UNIXUSERHOME/feedme-startup.sh
 }
 
+
+# Write nginx vhost file (will be moved later)
+write_nginx_vhost_file() {
+  tee feedme-nginx-vhost.conf <<EOF
+# Hunger Games server configuration (adapted from default)
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	root /home/nodejs/feedme-front/dist;
+	index index.html;
+
+	server_name _;
+
+	# Serve front-end (Vue.js app)
+	location / {
+		# fall back to index.html (no 404, ever)
+		try_files $uri $uri/ /index.html;
+	}
+
+	# Serve back-end (Express.js API)
+	location /robotoff {
+		proxy_pass http://127.0.0.1:5000/robotoff;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+	}
+
+}
+
+EOF
+}
+
+
 # Serve with Nginx
 # All requests to /robotoff/* will be proxied to the Node backend
 # All the rest are static assets, with /home/nodejs/feedme-front/dist as webroot
 setup_nginx() {
+  write_nginx_vhost_file
   cp feedme-nginx-vhost.conf /etc/nginx/sites-available/feedme
   ln -s /etc/nginx/sites-available/feedme /etc/nginx/sites-enabled/feedme
   rm /etc/nginx/sites-enabled/default
