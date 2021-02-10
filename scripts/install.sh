@@ -7,6 +7,7 @@
 UNIXUSERPASS=
 
 # Unprivileged PostgreSQL role's plain-text password
+# USE ANY character BUT / (will break sed regex below)
 PGPASS=
 
 # Robotoff instance URL
@@ -179,7 +180,7 @@ git clone $GITHUB_REPO_BACK feedme-back >> $UNIXUSERHOME/install.log
 
 cd feedme-front
 mv ../feedme-env-front .env.local
-sed -i -e "s/{PUBLIC_URL}/$PUBLIC_URL/g" .env
+sed -i -e "s,{PUBLIC_URL},$PUBLIC_URL,g" .env
 npm install >> $UNIXUSERHOME/install.log
 [ -d node_modules ] || (echo "Failed to install front-end deps" && exit 1)
 npm run build >> $UNIXUSERHOME/install.log
@@ -193,7 +194,7 @@ git checkout debian-deployment
 npm install
 [ -d node_modules ] || (echo "Failed to install back-end deps" && exit 1)
 mv ../feedme-env-back .env
-sed -i -e "s/{ROBOTOFF_BASE_URL}/$ROBOTOFF_BASE_URL/g" .env
+sed -i -e "s,{ROBOTOFF_BASE_URL},$ROBOTOFF_BASE_URL,g" .env
 sed -i -e "s/{PGPASSWORD}/$PGPASSWORD/g" .env
 echo "localhost:5432:feedme:feedme:$PGPASSWORD" > .pgpass
 chmod 600 $UNIXUSERHOME/.pgpass
