@@ -1,6 +1,12 @@
-# Node.js / Express template
+# Open Food Facts - Feed Me! (backend/API)
 
-This template provides:
+## Deploying on a server
+
+
+
+## About this repo
+
+This repo was created from [this template](https://github.com/bhubr/express-eslint-prettier-template), which provides:
 
 * A basic Express app in `index.js`
 * `dotenv`, a sample env file (`.env.sample`) and a `config.js` file to export config variables
