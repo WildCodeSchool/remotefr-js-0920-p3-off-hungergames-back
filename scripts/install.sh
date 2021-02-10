@@ -172,17 +172,17 @@ write_apps_install_script() {
 #!/bin/bash
 cd $UNIXUSERHOME
 git clone $GITHUB_REPO_FRONT feedme-front >> $UNIXUSERHOME/install.log
-[ -d feedme-front ] || (echo "Failed to clone frontend repo && exit 1)
+[ -d feedme-front ] || (echo "Failed to clone frontend repo" && exit 1)
 git clone $GITHUB_REPO_BACK feedme-back >> $UNIXUSERHOME/install.log
-[ -d feedme-front ] || (echo "Failed to clone backend repo && exit 1)
+[ -d feedme-back ] || (echo "Failed to clone backend repo" && exit 1)
 
 cd feedme-front
 mv ../feedme-env-front .env.local
 sed -i -e "s/{PUBLIC_URL}/$PUBLIC_URL/g" .env
 npm install >> $UNIXUSERHOME/install.log
-[ -d node_modules ] || (echo "Failed to install front-end deps && exit 1)
+[ -d node_modules ] || (echo "Failed to install front-end deps" && exit 1)
 npm run build >> $UNIXUSERHOME/install.log
-[ -d dist ] || (echo "Failed to build front-end app && exit 1)
+[ -d dist ] || (echo "Failed to build front-end app" && exit 1)
 
 cd ../feedme-back
 
@@ -190,7 +190,7 @@ cd ../feedme-back
 git checkout debian-deployment
 
 npm install
-[ -d node_modules ] || (echo "Failed to install back-end deps && exit 1)
+[ -d node_modules ] || (echo "Failed to install back-end deps" && exit 1)
 mv ../feedme-env-back .env
 sed -i -e "s/{ROBOTOFF_BASE_URL}/$ROBOTOFF_BASE_URL/g" .env
 sed -i -e "s/{PGPASSWORD}/$PGPASSWORD/g" .env
@@ -204,7 +204,7 @@ pm2 start ecosystem.config.js --env production
 pm2 startup | tee | tail -n 1 > feedme-startup.sh
 # Dump running services so they are restored by startup script
 pm2 save
-pm2 status 0 || (echo "Failed to start back-end app && exit 1)
+pm2 status 0 || (echo "Failed to start back-end app" && exit 1)
 EOF
   chown $UNIXUSERNAME:$UNIXUSERNAME installapps.sh
   chmod +x installapps.sh
@@ -244,12 +244,12 @@ status_check() {
   echo "Requesting front-end app's URL..."
   echo "should show a line containing <script> and <noscript> tags"
   curl http://localhost | tail -n 1
-  [ $? -ne 0 ] && exit_error "Error requesting front-end app URL"
+  [ $? -ne 0 ] || exit_error "Error requesting front-end app URL"
 
   echo "Requesting back-end app's root URL..."
   echo "should show the message: Robotoff !"
   curl http://localhost/robotoff && echo
-  [ $? -ne 0 ] && exit_error "Error requesting back-end app URL"
+  [ $? -ne 0 ] || exit_error "Error requesting back-end app URL"
 
   echo "Done!"
 }
