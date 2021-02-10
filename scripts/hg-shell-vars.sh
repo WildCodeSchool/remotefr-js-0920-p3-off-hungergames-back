@@ -14,5 +14,5 @@ PUBLIC_URL=http://192.168.1.33
 
 export UNIXUSERNAME=nodejs
 export UNIXUSERHASH=$(openssl passwd -crypt $UNIXUSERPASS)
-export PGUSER=hungergames
+export PGUSER=feedme
 export PGPASSWORD=$PGPASS
