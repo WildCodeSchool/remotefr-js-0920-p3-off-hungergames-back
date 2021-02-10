@@ -1,6 +1,6 @@
 module.exports = {
   apps : [{
-    name: 'off-hungergames-back',
+    name: 'off-feedme-api',
     script: 'index.js',
     env: {
       "NODE_ENV": "development",
