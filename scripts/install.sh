@@ -3,10 +3,10 @@
 # --- PLEASE adjust the params in this section -----------------------
 
 # Unprivileged Unix account's plain-text password
-UNIXUSERPASS=NodejsAccountPasswd
+UNIXUSERPASS=
 
 # Unprivileged PostgreSQL role's plain-text password
-PGPASS=FeedmeRolePasswd
+PGPASS=
 
 # Robotoff instance URL
 # (the 2nd one, used for dev, will be shut down in Feb. 21)
@@ -24,32 +24,81 @@ GITHUB_REPO_BACK=https://github.com/WildCodeSchool/remotefr-js-0920-p3-off-hunge
 
 # --- END of params section ------------------------------------------
 
+# Utility functions
+normal='\e[0m'
+red='\e[31m'
+green="\e[32m"
+yellow='\e[33m'
+cyan="\e[36m"
+
+exit_error() {
+  echo -e "[${red}FATAL${normal}] $1"
+  exit 1
+}
+
+echo_success() {
+  echo -e "[${green}SUCCESS${normal}] $1"
+}
+
+check_command() {
+  which $1 &>/dev/null
+  if [ $? -eq 0 ]; then
+    echo -e "[${cyan}OK${normal}] $1"
+    return 0
+  else
+    echo -e "[${yellow}FAIL${normal}] $1"
+    return 1
+  fi
+}
+
+check_commands() {
+  for cmd in $1
+  do
+    check_command "$cmd"
+    [ $? -ne 0 ] && exit_error "$cmd not found"
+  done
+}
+
+# Check required variables (passwords)
+check_variables() {
+   [ -z "$UNIXUSERPASS" ] && exit_error "UNIXUSERPASS var not set (nodejs Unix account)"
+   [ -z "$PGPASS" ] && exit_error "PGPASS var not set (psql role)"
+  echo_success "01/07 Variables are set and useradd exists"
+}
 
 # Set variables used during the script
 set_variables() {
-  # Unix account username/pass
+  # Unix account username/pass/home
   UNIXUSERNAME=nodejs
   UNIXUSERHASH=$(openssl passwd -crypt $UNIXUSERPASS)
+  UNIXUSERHOME=/home/$UNIXUSERNAME
   # Pg account username/pass
   PGUSER=feedme
   PGPASSWORD=$PGPASS
   # In case useradd isn't found (e.g. running su instead of su -)
   PATH=/sbin:$PATH
+  check_commands useradd
+  echo_success "02/07 Variables are set and useradd exists"
 }
 
 
 # Install modules we'll need
 install_base_packages() {
-  apt-get update
-  apt-get install -y sudo curl git openssl postgresql nginx
+  apt-get update >> install.log
+  apt-get install -y sudo curl git openssl postgresql nginx >> install.log
+  check_commands "sudo curl git openssl psql nginx"
+  echo_success "03/07 Base packages installed"
 }
 
 
 # Create non-privileged account
 create_regular_user() {
-  useradd -d /home/$UNIXUSERNAME -m -p $UNIXUSERHASH -s /bin/bash $UNIXUSERNAME
-  chown $UNIXUSERNAME:$UNIXUSERNAME hg-env-*
-  mv hg-env-* /home/$UNIXUSERNAME
+  useradd -d $UNIXUSERHOME -m -p $UNIXUSERHASH -s /bin/bash $UNIXUSERNAME
+  if [ -d $UNIXUSERHOME ]; then
+    echo_success "04/07 Unix account $UNIXUSERNAME created"
+  else
+    exit_error "Unix account $UNIXUSERNAME not created"
+  fi
 }
 
 
@@ -57,20 +106,33 @@ create_regular_user() {
 install_nodejs() {
   curl -sL https://deb.nodesource.com/setup_14.x | bash -
   apt-get install -y nodejs
+  check_commands "nodejs npm"
   npm i -g pm2
+  check_commands pm2
+  echo_success "05/07 Node.js, npm and pm2 installed"
 }
 
 
 # Setup PostgreSQL
 setup_pg() {
+  # Start/restart pg
+  systemctl restart postgresql
+  [ $? -ne 0 ] && exit_error "PostgreSQL server not running"
+
   # Create feedme DB owned by feedme
   sudo -u postgres psql -c "CREATE ROLE $PGUSER WITH PASSWORD '$PGPASSWORD';"
   sudo -u postgres psql -c "ALTER ROLE $PGUSER WITH LOGIN;"
   sudo -u postgres psql -c "CREATE DATABASE feedme OWNER $PGUSER;"
 
+  sudo -u postgres psql -c "\c feedme" || exit_error "PostgreSQL database feedme not created"
+
   # Will work with default pg_hba.conf
-  sed -i "/^local.*all.*all/ilocal\tall\t$PGUSER\t\t\t\t\tpassword" /etc/postgresql/11/main/pg_hba.conf
+  sed -i "/^local.*all.*all/ilocal\tall\t$PGUSER\t\t\t\t\tpassword" /etc/postgresql/07/main/pg_hba.conf
+
+  # Restart pg
   systemctl restart postgresql
+  [ $? -ne 0 ] && exit_error "PostgreSQL server restarted after config change"
+  echo_success "06/07 PostgreSQL server running"
 }
 
 
@@ -80,6 +142,8 @@ write_front_env_file() {
 VUE_APP_BACK_API_NODE={PUBLIC_URL}/robotoff
 VUE_APP_WEBSITE_URL={PUBLIC_URL}
 EOF
+  chown $UNIXUSERNAME:$UNIXUSERNAME feedme-env-front
+  mv feedme-env-front $UNIXUSERHOME
 }
 
 
@@ -96,6 +160,8 @@ DB_USER=feedme
 DB_PASSWORD={PGPASSWORD}
 DB_DATABASE=feedme
 EOF
+  chown $UNIXUSERNAME:$UNIXUSERNAME feedme-env-back
+  mv feedme-env-back $UNIXUSERHOME
 }
 
 
@@ -104,48 +170,58 @@ EOF
 write_apps_install_script() {
   tee installapps.sh <<EOF
 #!/bin/bash
-cd /home/$UNIXUSERNAME
-git clone $GITHUB_REPO_FRONT feedme-front
-git clone $GITHUB_REPO_BACK feedme-back
+cd $UNIXUSERHOME
+git clone $GITHUB_REPO_FRONT feedme-front >> $UNIXUSERHOME/install.log
+[ -d feedme-front ] || (echo "Failed to clone frontend repo && exit 1)
+git clone $GITHUB_REPO_BACK feedme-back >> $UNIXUSERHOME/install.log
+[ -d feedme-front ] || (echo "Failed to clone backend repo && exit 1)
+
 cd feedme-front
 mv ../feedme-env-front .env.local
 sed -i -e "s/{PUBLIC_URL}/$PUBLIC_URL/g" .env
-npm install
-npm run build
+npm install >> $UNIXUSERHOME/install.log
+[ -d node_modules ] || (echo "Failed to install front-end deps && exit 1)
+npm run build >> $UNIXUSERHOME/install.log
+[ -d dist ] || (echo "Failed to build front-end app && exit 1)
+
 cd ../feedme-back
 
 # TEMP
 git checkout debian-deployment
 
 npm install
+[ -d node_modules ] || (echo "Failed to install back-end deps && exit 1)
 mv ../feedme-env-back .env
 sed -i -e "s/{ROBOTOFF_BASE_URL}/$ROBOTOFF_BASE_URL/g" .env
 sed -i -e "s/{PGPASSWORD}/$PGPASSWORD/g" .env
-echo "localhost:5432:feedme:feedme:$PGPASSWORD" > /home/$UNIXUSERNAME/.pgpass
-chmod 600 /home/$UNIXUSERNAME/.pgpass
-psql -U feedme -d feedme < /home/$UNIXUSERNAME/feedme-back/database/schema.sql
-rm /home/$UNIXUSERNAME/.pgpass
+echo "localhost:5432:feedme:feedme:$PGPASSWORD" > $UNIXUSERHOME/.pgpass
+chmod 600 $UNIXUSERHOME/.pgpass
+psql -U feedme -d feedme < $UNIXUSERHOME/feedme-back/database/schema.sql
+rm $UNIXUSERHOME/.pgpass
 # Start backend in production mode
 pm2 start ecosystem.config.js --env production
 # Generate startup script
 pm2 startup | tee | tail -n 1 > feedme-startup.sh
 # Dump running services so they are restored by startup script
 pm2 save
+pm2 status 0 || (echo "Failed to start back-end app && exit 1)
 EOF
+  chown $UNIXUSERNAME:$UNIXUSERNAME installapps.sh
+  chmod +x installapps.sh
+  mv installapps.sh $UNIXUSERHOME/
 }
 
 
 # Run install script as non-privileged user
 run_apps_install_script() {
-  chown $UNIXUSERNAME:$UNIXUSERNAME installapps.sh
-  chmod +x installapps.sh
-  mv installapps.sh /home/$UNIXUSERNAME/
-  sudo -u $UNIXUSERNAME /home/$UNIXUSERNAME/installapps.sh
+  sudo -u $UNIXUSERNAME $UNIXUSERHOME/installapps.sh
+  [ $? -ne 0 ] && exit_error "Error while setting up front-end or back-end app"
+  echo_success "07/07 Front-end app built & back-end app running"
   rm installapps.sh
 
   # Run the startup script generated by pm2 (needs sudo) & rm it
-  bash /home/$UNIXUSERNAME/feedme-startup.sh
-  rm /home/$UNIXUSERNAME/feedme-startup.sh
+  bash $UNIXUSERHOME/feedme-startup.sh
+  rm $UNIXUSERHOME/feedme-startup.sh
 }
 
 # Serve with Nginx
@@ -168,15 +244,19 @@ status_check() {
   echo "Requesting front-end app's URL..."
   echo "should show a line containing <script> and <noscript> tags"
   curl http://localhost | tail -n 1
+  [ $? -ne 0 ] && exit_error "Error requesting front-end app URL"
 
   echo "Requesting back-end app's root URL..."
   echo "should show the message: Robotoff !"
   curl http://localhost/robotoff && echo
+  [ $? -ne 0 ] && exit_error "Error requesting back-end app URL"
 
   echo "Done!"
 }
 
 # Run all functions
+echo "Installing (details will be logged to install.log)"
+check_variables
 set_variables
 install_base_packages
 create_regular_user
