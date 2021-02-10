@@ -228,7 +228,7 @@ run_apps_install_script() {
 
 # Write nginx vhost file (will be moved later)
 write_nginx_vhost_file() {
-  tee feedme-nginx-vhost.conf <<EOF
+  tee feedme-nginx-vhost.conf <<'EOF'
 # Hunger Games server configuration (adapted from default)
 server {
 	listen 80 default_server;
