@@ -127,7 +127,7 @@ setup_pg() {
   sudo -u postgres psql -c "\c feedme" || exit_error "PostgreSQL database feedme not created"
 
   # Will work with default pg_hba.conf
-  sed -i "/^local.*all.*all/ilocal\tall\t$PGUSER\t\t\t\t\tpassword" /etc/postgresql/07/main/pg_hba.conf
+  sed -i "/^local.*all.*all/ilocal\tall\t$PGUSER\t\t\t\t\tpassword" /etc/postgresql/11/main/pg_hba.conf
 
   # Restart pg
   systemctl restart postgresql
