@@ -3,6 +3,7 @@
 # --- PLEASE adjust the params in this section -----------------------
 
 # Unprivileged Unix account's plain-text password
+# MAXIMUM 8 characters
 UNIXUSERPASS=
 
 # Unprivileged PostgreSQL role's plain-text password
@@ -63,7 +64,7 @@ check_commands() {
 check_variables() {
    [ -z "$UNIXUSERPASS" ] && exit_error "UNIXUSERPASS var not set (nodejs Unix account)"
    [ -z "$PGPASS" ] && exit_error "PGPASS var not set (psql role)"
-  echo_success "01/07 Variables are set and useradd exists"
+  echo_success "01/07 UNIXUSERPASS and PGPASS variables are set"
 }
 
 # Set variables used during the script
@@ -78,7 +79,7 @@ set_variables() {
   # In case useradd isn't found (e.g. running su instead of su -)
   PATH=/sbin:$PATH
   check_commands useradd
-  echo_success "02/07 Variables are set and useradd exists"
+  echo_success "02/07 Variables are set and useradd was found"
 }
 
 
