@@ -1,7 +1,7 @@
 -- psql postgres -U me  -f schema.sql
 
-CREATE DATABASE hunger_games_dev ;
-\c hunger_games_dev;
+-- CREATE DATABASE hunger_games_dev ;
+-- \c hunger_games_dev;
 
 -- Create function to update date
 CREATE OR REPLACE FUNCTION trigger_set_timestamp()

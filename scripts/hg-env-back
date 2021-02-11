@@ -1,0 +1,9 @@
+PORT=5000
+ALLOWED_ORIGINS=
+ROBOTOFF_API_URL={ROBOTOFF_BASE_URL}/api/v1
+OFF_API_URL=https://world.openfoodfacts.org/api/v0
+OFF_IMAGE_URL=https://static.openfoodfacts.org/images/products
+DB_HOST=localhost
+DB_USER=feedme
+DB_PASSWORD={PGPASSWORD}
+DB_DATABASE=feedme
