@@ -188,9 +188,6 @@ npm run build >> $UNIXUSERHOME/install.log
 
 cd ../feedme-back
 
-# TEMP
-git checkout debian-deployment
-
 npm install
 [ -d node_modules ] || (echo "Failed to install back-end deps" && exit 1)
 mv ../feedme-env-back .env
