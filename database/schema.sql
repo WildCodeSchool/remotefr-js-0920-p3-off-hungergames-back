@@ -12,8 +12,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-\df;
-
 -- Create table insight
 CREATE TABLE insight (
     ID SERIAL PRIMARY KEY,
@@ -30,8 +28,6 @@ CREATE TRIGGER set_timestamp_insight
 BEFORE UPDATE ON insight
 FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
-
-\dt;
 
 
 CREATE TABLE insight_keep (
