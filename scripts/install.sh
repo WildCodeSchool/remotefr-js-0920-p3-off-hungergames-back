@@ -153,7 +153,7 @@ EOF
 write_back_env_file() {
   tee feedme-env-back <<EOF
 PORT=5000
-ALLOWED_ORIGINS=
+ALLOWED_ORIGINS={PUBLIC_URL}
 ROBOTOFF_API_URL={ROBOTOFF_BASE_URL}/api/v1
 OFF_API_URL=https://world.openfoodfacts.org/api/v0
 OFF_IMAGE_URL=https://static.openfoodfacts.org/images/products
@@ -194,6 +194,7 @@ git checkout debian-deployment
 npm install
 [ -d node_modules ] || (echo "Failed to install back-end deps" && exit 1)
 mv ../feedme-env-back .env
+sed -i -e "s,{PUBLIC_URL},$PUBLIC_URL,g" .env
 sed -i -e "s,{ROBOTOFF_BASE_URL},$ROBOTOFF_BASE_URL,g" .env
 sed -i -e "s/{PGPASSWORD}/$PGPASSWORD/g" .env
 echo "localhost:5432:feedme:feedme:$PGPASSWORD" > $UNIXUSERHOME/.pgpass
