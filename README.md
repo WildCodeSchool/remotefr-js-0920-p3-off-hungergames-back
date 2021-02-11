@@ -7,7 +7,7 @@ You can use our [install script](scripts/install.sh) to set up the backend *and*
 1. SSH to your server
 2. Become root : `su -`
 3. Install curl and vim (or your favorite text editor): `apt-get install -y curl vim`
-4. Download the install script: `curl -L -o install.sh http://bit.do/off-feedme-tempinstall` (**TODO** replace with )
+4. Download the install script: `curl -L -o install.sh http://bit.do/off-feedme-tempinstall` (**TODO** replace with definitive URL)
 5. Edit params in the header section of `install.sh`, especially `UNIXUSERPASS` and `PGPASS`.
 6. Run the script: `bash install.sh`
 
