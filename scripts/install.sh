@@ -275,19 +275,27 @@ setup_nginx() {
 # Check status by running pm2 status
 # and requesting front-end & back-end URLs
 status_check() {
-  echo "Almost done! Checking status..."
+  echo -e "\n\nAlmost done! Checking status..."
   echo "pm2 status should show off-feedme-api app with green status (online)"
   sudo -u nodejs pm2 status
 
-  echo "Requesting front-end app's URL..."
+  echo -e "\n\nRequesting front-end app's URL..."
   echo "should show a line containing <script> and <noscript> tags"
   curl http://localhost | tail -n 1
-  [ $? -ne 0 ] || exit_error "Error requesting front-end app URL"
+  if [ $? -ne 0 ]; then
+    exit_error "Error requesting front-end app URL"
+  else
+    echo_success "Check that the curl output contains <script> and <noscript> tags from the Vue.js index.html"
+  fi
 
-  echo "Requesting back-end app's root URL..."
+  echo -e "\n\nRequesting back-end app's root URL..."
   echo "should show the message: Robotoff !"
   curl http://localhost/robotoff && echo
-  [ $? -ne 0 ] || exit_error "Error requesting back-end app URL"
+  if [ $? -ne 0 ]; then
+    exit_error "Error requesting back-end app URL"
+  else
+    echo_success "Check that the curl output contains: Robotoff !"
+  fi
 
   echo "Done!"
 }
