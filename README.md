@@ -445,6 +445,88 @@ $ pm2 unstartup systemd
 
 If you reboot your server, the app will be start automatically via systemd. You're **done** with the backend part :tada:.
 
+#### Setup the frontend app.
+
+Make sure you get back to the `nodejs` account and the `/home/nodejs` directory.
+
+Clone the GitHub repository and `cd` to it:
+
+```
+git clone https://github.com/WildCodeSchool/remotefr-js-0920-p3-off-hungergames-front.git feedme-front
+cd feedme-front
+```
+
+Install its dependencies with NPM:
+
+```
+npm install
+```
+
+##### Configure the app via the `.env.local` file
+
+Vue apps can be configured by the means of ["env" files](https://cli.vuejs.org/guide/mode-and-env.html#environment-variables). There might be several of them, which allows to have common values in one, and overriding/adding some of them in another.
+
+We'll use `.env.local`. Create it by copying the example file:
+
+```
+cp .env.local.sample .env.local
+```
+
+Then edit it, and set the variables according to your needs. Following is an example. Assuming, as we do, that we'll deploy the backend and frontend to the same domain/origin`feedme.my-domain.com`, here's our `.env.local`:
+
+```
+VUE_APP_BACK_API_NODE=https://feedme.my-domain.com/robotoff
+VUE_APP_WEBSITE_URL=https://feedme.my-domain.com
+```
+
+##### Build the production bundle
+
+The app's constituents (`.vue` files) are to be bundled together by Webpack. This will produce:
+
+* One `js` file containing the libraries,
+* One `js` file containing the app itself,
+* Once `css` file
+
+This is all achieved by running:
+
+```
+npm run build
+```
+
+The build will be located under the `dist` directory. You can run `find dist` to check its content:
+
+```
+dist/
+dist/img
+dist/img/icomoon.b004ec98.svg
+dist/img/yes.ff46f484.svg
+dist/img/burger.e109f5b5.svg
+dist/img/back.6da16e16.svg
+dist/img/no.89068b0f.svg
+dist/manifest.json
+dist/js
+dist/js/chunk-vendors.4aaa8d07.js.map
+dist/js/app.db2e1954.js.map
+dist/js/app.db2e1954.js
+dist/js/chunk-vendors.4aaa8d07.js
+dist/maskable_icon_x384.png
+dist/maskable_icon_x256.png
+dist/icon_x64.ico
+dist/index.html
+dist/maskable_icon_x152.png
+dist/_redirects
+dist/css
+dist/css/app.f8759978.css
+dist/maskable_icon_x512.png
+```
+
+#### Setup the web server
+
+The last step is to setup Nginx so as to:
+
+* Serve the frontend app's `dist` directory`
+* route all requests under the `/robotoff` path to the backend app
+
 ## About this repo
 
 This repo was created from [this template](https://github.com/bhubr/express-eslint-prettier-template), which provides:
