@@ -1,9 +1,5 @@
 # Open Food Facts - Feed Me! (backend/API)
 
-## TODO
-
-* See if we should merge back & front repos into a single one (easier to manage with Docker Compose)
-
 ## Deploying on a production server
 
 You have three options:
