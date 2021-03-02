@@ -160,7 +160,7 @@ The alternatives would be to use [nvm](https://github.com/nvm-sh/nvm) or [n](htt
 
 #### Install PM2
 
-> For this step and until you are told otherwise, you shoud be connected as `nodejs`.
+> From this step, and until you are told otherwise, you shoud be connected as `nodejs`.
 
 ```
 su - nodejs
@@ -195,7 +195,9 @@ You should now be able to launch it: `pm2`. We'll get back to it later.
 
 #### Setup the backend application
 
-Still under the `nodejs` account, clone the backend repository and `cd` to it:
+Check that you are located under the `/home/nodejs` directory (`pwd`).
+
+Clone the backend repository and `cd` to it:
 
 ```
 git clone https://github.com/WildCodeSchool/remotefr-js-0920-p3-off-hungergames-back.git feedme-back
@@ -286,7 +288,162 @@ Just before your prompt, you should see `[]`.
 
 Then put the server back to the foreground with `fg`, and interrupt it with Ctrl-C.
 
+##### Run the app with PM2
 
+PM2 can use an "ecosystem" file, in which you can define which app(s) to run, set environment variables for each one, etc. This will run the app in production mode:
+
+```
+pm2 start ecosystem.config.js --env production
+```
+
+This should output the status of the PM2-managed apps:
+
+```
+[PM2] Spawning PM2 daemon with pm2_home=/home/nodejs/.pm2
+[PM2] PM2 Successfully daemonized
+[PM2][WARN] Applications off-feedme-api not running, starting...
+[PM2] App [off-feedme-api] launched (1 instances)
+┌─────┬───────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id  │ name              │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├─────┼───────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0   │ off-feedme-api    │ default     │ 1.0.0   │ fork    │ 1091     │ 0s     │ 0    │ online    │ 0%       │ 31.6mb   │ nodejs   │ disabled │
+└─────┴───────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+```
+
+The information displayed here includes:
+
+* `id` (auto-incremented) which can be used as a shorthand to get logs on a specific app
+* `name`
+* `uptime`: time the app has been up & running
+* `↺`: number of restarts
+
+> You can get this output anytime by running `pm2 status`. Try it and check the `uptime` and `↺` columns: the app should have been running for at least a few seconds, and not have been restarted.
+
+Here's an example of `pm2 status` output indicating an error:
+
+```
+┌─────┬───────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id  │ name              │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├─────┼───────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0   │ off-feedme-api    │ default     │ 1.0.0   │ fork    │ 0        │ 0      │ 15   │ errored   │ 0%       │ 0b       │ nodejs   │ disabled │
+└─────┴───────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+```
+
+Should this happen, you can check the logs by using `pm2 log <id or name>`. E.g. `pm2 log 0` or `pm2 log off-feedme-api`, which in my case, gives this output:
+
+```
+[TAILING] Tailing last 15 lines for [0] process (change the value with --lines option)
+/home/nodejs/.pm2/logs/off-feedme-api-out.log last 15 lines:
+/home/nodejs/.pm2/logs/off-feedme-api-error.log last 15 lines:
+0|off-feed |     at listenInCluster (net.js:1366:12)
+0|off-feed |     at Server.listen (net.js:1452:7)
+0|off-feed |     at Function.listen (/home/nodejs/feedme-back/node_modules/express/lib/application.js:618:24)
+0|off-feed |     at Object.<anonymous> (/home/nodejs/feedme-back/index.js:35:5)
+0|off-feed |     at Module._compile (internal/modules/cjs/loader.js:1063:30)
+0|off-feed |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:1092:10)
+0|off-feed |     at Module.load (internal/modules/cjs/loader.js:928:32)
+0|off-feed |     at Function.Module._load (internal/modules/cjs/loader.js:769:14)
+0|off-feed |     at Object.<anonymous> (/home/nodejs/.npm/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23) {
+0|off-feed |   code: 'EADDRINUSE',
+0|off-feed |   errno: -98,
+0|off-feed |   syscall: 'listen',
+0|off-feed |   address: '::',
+0|off-feed |   port: 5000
+0|off-feed | }
+```
+
+It so happened that I had forgotten to kill a server already launched in the background.
+
+> When the app crashes, **pm2 restarts it automatically**. While this is useful, you can end up having a huge amount of restarts, which doesn't sound good. In that case, better stop the app while you investigate the reasons for the crash: `pm2 stop 0`.
+
+In my case, I could either use `sudo fuser -k 5000/tcp`, or use `sudo ps aux | grep node` to locate its PID, then use `kill -9 <pid>`. After that, I could restart the app with `pm2 start 0` (no need to specify production environment, since it was done when we invoked `pm2 start` with the ecosystem file).
+
+Checking back the logs, I can run `pm2 status` and `pm2 log 0 --lines 5`. I now have a green line indicating that the server is running:
+
+```
+[TAILING] Tailing last 5 lines for [0] process (change the value with --lines option)
+/home/nodejs/.pm2/logs/off-feedme-api-error.log last 5 lines:
+0|off-feed |   errno: -98,
+0|off-feed |   syscall: 'listen',
+0|off-feed |   address: '::',
+0|off-feed |   port: 5000
+0|off-feed | }
+
+/home/nodejs/.pm2/logs/off-feedme-api-out.log last 5 lines:
+0|off-feed | Express server listening on 5000
+```
+
+##### Manage the app as a service
+
+If we leave it as is, the backend won't restart when the server reboots. PM2 has our back here, and makes it very simple to manage an app as a service.
+
+Run this command to generate a "startup script":
+
+```
+pm2 startup
+```
+
+This outputs:
+
+```
+[PM2] Init System found: systemd
+[PM2] To setup the Startup Script, copy/paste the following command:
+sudo env PATH=$PATH:/usr/bin /home/nodejs/.npm/lib/node_modules/pm2/bin/pm2 startup systemd -u nodejs --hp /home/nodejs
+```
+
+As instructed, you must copy/paste the last line, but you need sudo privileges for that. Get back to your account that has them and run:
+
+```
+sudo env PATH=$PATH:/usr/bin /home/nodejs/.npm/lib/node_modules/pm2/bin/pm2 startup systemd -u nodejs --hp /home/nodejs
+```
+
+This will give a long output (some of it has been truncated here):
+
+```
+[PM2] Init System found: systemd
+Platform systemd
+Template
+[Unit]
+Description=PM2 process manager
+Documentation=https://pm2.keymetrics.io/
+After=network.target
+
+[Service]
+Type=forking
+User=nodejs
+LimitNOFILE=infinity
+LimitNPROC=infinity
+LimitCORE=infinity
+Environment=PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+Environment=PM2_HOME=/home/nodejs/.pm2
+PIDFile=/home/nodejs/.pm2/pm2.pid
+Restart=on-failure
+
+ExecStart=/home/nodejs/.npm/lib/node_modules/pm2/bin/pm2 resurrect
+ExecReload=/home/nodejs/.npm/lib/node_modules/pm2/bin/pm2 reload all
+ExecStop=/home/nodejs/.npm/lib/node_modules/pm2/bin/pm2 kill
+
+[Install]
+WantedBy=multi-user.target
+
+Target path
+/etc/systemd/system/pm2-nodejs.service
+Command list
+[ 'systemctl enable pm2-nodejs' ]
+[PM2] Writing init configuration in /etc/systemd/system/pm2-nodejs.service
+[PM2] Making script booting at startup...
+[PM2] [-] Executing: systemctl enable pm2-nodejs...
+Created symlink /etc/systemd/system/multi-user.target.wants/pm2-nodejs.service → /etc/systemd/system/pm2-nodejs.service.
+[PM2] [v] Command successfully executed.
++---------------------------------------+
+[PM2] Freeze a process list on reboot via:
+$ pm2 save
+
+[PM2] Remove init script via:
+$ pm2 unstartup systemd
+```
+
+If you reboot your server, the app will be start automatically via systemd. You're **done** with the backend part :tada:.
 
 ## About this repo
 
