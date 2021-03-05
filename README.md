@@ -4,11 +4,11 @@
 
 There are three proposed options (though you may investigate others, such as [Dokku](https://dokku.com/) and [CapRover](https://caprover.com/)):
 
-1. The easy way (without Docker), using the provided install script
-2. The hard way (without Docker), manually setting up everything
-3. Another easy way, with Docker Compose.
+1. The easy way, with Docker Compose.
+2. Another easy way (without Docker), using the provided install script
+3. The hard way (without Docker), manually setting up everything
 
-> Note: the option 2 is a break-down of the script used in option 1. There's only a slight difference, regarding the order of the steps, and how PM2 (Node.js process manager) is installed.
+> Note: the option 3 is a break-down of the script used in option 2. There's only a slight difference, regarding the order of the steps, and how PM2 (Node.js process manager) is installed.
 
 Before we get into that, let's talk about the initial server setup.
 
@@ -33,7 +33,11 @@ Here are a few pointers that you might find useful:
 
 With that out of the way, choose one of the following options.
 
-### Option 1: using the install script
+### Option 1: with Docker Compose
+
+
+
+### Option 2: using the install script
 
 You can use our [install script](scripts/install.sh) to set up the backend *and* the frontend apps at once, on a Debian Buster server.
 
@@ -44,7 +48,7 @@ You can use our [install script](scripts/install.sh) to set up the backend *and*
 5. Edit params in the header section of `install.sh`, especially `UNIXUSERPASS` and `PGPASS`.
 6. Run the script: `bash install.sh`
 
-### Option 2: setting up the server manually
+### Option 3: setting up the server manually
 
 This section is basically a break-down of all the steps that are performed by the install script.
 
@@ -713,7 +717,35 @@ That should be it! Congrats if you made it this far!
 
 ### Re-deploying after code updates
 
-**WIP**
+#### Backend app
+
+Re-deploying the backend app should be as easy as:
+
+1. Connecting to the server as `nodejs`,
+2. Changing dir to `feedme-back`,
+3. Running `git pull` to fetch the latest updates from GitHub,
+4. Running `npm install` to install new dependencies that might have been added,
+5. Running `pm2 restart 0`, followed by `pm2 restart 0`.
+
+#### Frontend app
+
+The steps are the same up to the 5th:
+
+1. Connecting to the server as `nodejs`,
+2. Changing dir to `feedme-back`,
+3. Running `git pull` to fetch the latest updates from GitHub,
+4. Running `npm install` to install new dependencies that might have been added,
+5. Running `npm run build`.
+
+### Backing up the database
+
+As a user who has sudo privileges:
+
+```
+sudo pg_dump -U feedme feedme > feedme-dump.sql
+```
+
+You might want to setup cron so as to perform regular backups.
 
 ## About this repo
 
