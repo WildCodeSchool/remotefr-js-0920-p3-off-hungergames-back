@@ -2,13 +2,12 @@
 
 ## Deploying on a staging/production server
 
-There are three proposed options (though you may investigate others, such as [Dokku](https://dokku.com/) and [CapRover](https://caprover.com/)):
+There are two proposed options (though you may investigate others, such as [Dokku](https://dokku.com/) and [CapRover](https://caprover.com/)):
 
-1. The easy way, with Docker Compose.
-2. Another easy way (without Docker), using the provided install script
-3. The hard way (without Docker), manually setting up everything
+1. The easy way, using the provided install script
+2. The hard way, manually setting up everything
 
-> Note: the option 3 is a break-down of the script used in option 2. There's only a slight difference, regarding the order of the steps, and how PM2 (Node.js process manager) is installed.
+> Note: the option 2 is a break-down of the script used in option 1. There's only a slight difference, regarding the order of the steps, and how PM2 (Node.js process manager) is installed.
 
 Before we get into that, let's talk about the initial server setup.
 
@@ -33,11 +32,7 @@ Here are a few pointers that you might find useful:
 
 With that out of the way, choose one of the following options.
 
-### Option 1: with Docker Compose
-
-
-
-### Option 2: using the install script
+### Option 1: using the install script
 
 You can use our [install script](scripts/install.sh) to set up the backend *and* the frontend apps at once, on a Debian Buster server.
 
@@ -48,7 +43,7 @@ You can use our [install script](scripts/install.sh) to set up the backend *and*
 5. Edit params in the header section of `install.sh`, especially `UNIXUSERPASS` and `PGPASS`.
 6. Run the script: `bash install.sh`
 
-### Option 3: setting up the server manually
+### Option 2: setting up the server manually
 
 This section is basically a break-down of all the steps that are performed by the install script.
 
