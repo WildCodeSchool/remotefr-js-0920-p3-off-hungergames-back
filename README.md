@@ -145,6 +145,12 @@ Then restart Postgres:
 sudo systemctl restart postgresql
 ```
 
+You may want to commit the changes made to this file via Etckeeper, by placing yourself in the `/etc` folder, and running:
+
+```
+sudo git commit -am "Allow access to pg role feedme via password method"
+```
+
 #### Install Node.js
 
 The [Downloads](https://nodejs.org/en/download/) page on Node.js's official website references the [Installing Node.js via package manager](https://nodejs.org/en/download/package-manager/) page, which lists options for various OSes.
@@ -520,12 +526,52 @@ dist/css/app.f8759978.css
 dist/maskable_icon_x512.png
 ```
 
+The build is basically a set of static assets: an `index.html`, JavaScript and CSS files, along with images.
+
 #### Setup the web server
+
+**TODO**
+
+1. Don't remove the `default` vhost right away
+2. Instead, generate SSL cert with certbot or acme.sh
+3. Remove the `default` vhost and use the `feedme` vhost WITH https
 
 The last step is to setup Nginx so as to:
 
 * Serve the frontend app's `dist` directory`
-* route all requests under the `/robotoff` path to the backend app
+* Route all requests under the `/robotoff` path to the backend app
+
+Get back to your user account that has sudo privileges, and install Nginx:
+
+```
+sudo apt-get install -y nginx
+```
+
+Then copy the `feedme-nginx-vhost.conf` file, from the `scripts` directory, to the directory where Nginx's "virtual hosts" are stored:
+
+```
+sudo cp /home/nodejs/feedme-back/scripts/feedme-nginx-vhost.conf /etc/nginx/sites-available/feedme
+```
+
+Create a symbolic link from this file to `/etc/nginx/sites-enabled`, where Nginx's _active_ vhosts are located:
+
+```
+sudo ln -s /etc/nginx/sites-available/feedme /etc/nginx/sites-enabled/
+```
+
+Remove the `default` symlink from `sites-enabled`, since we don't need the default Nginx vhost anymore:
+
+```
+sudo rm /etc/nginx/sites-enabled/default
+```
+
+Reload Nginx's configuration, for these changes to take effect:
+
+```
+sudo systemctl reload nginx
+```
+
+
 
 ## About this repo
 
