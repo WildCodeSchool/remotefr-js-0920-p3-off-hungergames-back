@@ -253,6 +253,10 @@ server {
 		proxy_set_header X-Forwarded-Proto $scheme;
 	}
 
+	# For Let's Encrypt certbot / acme.sh, if you need to set it up later
+	location ^~ /.well-known/acme-challenge/ {
+		alias /var/www/letsencrypt/.well-known/acme-challenge/;
+	}
 }
 
 EOF

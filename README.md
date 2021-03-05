@@ -1,8 +1,8 @@
 # Open Food Facts - Feed Me! (backend/API)
 
-## Deploying on a production server
+## Deploying on a staging/production server
 
-You have three options:
+There are three proposed options (though you may investigate others, such as [Dokku](https://dokku.com/) and [CapRover](https://caprover.com/)):
 
 1. The easy way (without Docker), using the provided install script
 2. The hard way (without Docker), manually setting up everything
@@ -28,6 +28,8 @@ Here are a few pointers that you might find useful:
 * [Initial Server Setup with Debian 10](https://www.digitalocean.com/community/tutorials/initial-server-setup-with-debian-10) Covers the creation of a non-root account (with sudo), and basic firewall setup
 * [The Debian Administrator's Handbook](https://debian-handbook.info/browse/stable/), and its [chapter on security](https://debian-handbook.info/browse/stable/security.html) If you want more insights on hardening your server
 * [Correct file permissions for ssh keys and config](https://gist.github.com/grenade/6318301)
+
+> :warning: On a staging server, you should consider using [Let's Encrypt](https://letsencrypt.org). The install script doesn't address this: it was first intended for setting up the actual production server. The production server itself is behind an Nginx reverse proxy which handles HTTPS. We'll get into more details in the "Option 2" section, if you want to setup HTTPS.
 
 With that out of the way, choose one of the following options.
 
@@ -263,6 +265,7 @@ Let's break this down:
 
     * Suppose we wouldn't deploy FeedMe to a VPS, but to cloud services: Netlify (for the frontend app) and Heroku (for the backend app). The URL of the frontend app would be something like `https://my-feedme-instance.netlify.app`. So we would have to assign this value to `ALLOWED_ORIGINS`.
     * If you deploy FeedMe to a VPS, you can have both the backend and the frontend on the same origin (Nginx can route the incoming requests, according to the requested path). Here we suppose that we have a subdomain `feedme.my-domain.com` which will be handled by an Nginx "vhost". So we assign `https://feedme.my-domain.com` to `ALLOWED_ORIGINS` (supposing we'll use HTTPS).
+    * Regarding HTTPS: if you don't intend to setup HTTPS, this should be reflected in the actual URL you'll be using in replacement of `https://feedme.my-domain.com`, _for this and all the subsequent sections of this procedure_.
 
 ##### Inject the app's database schema into Postgres
 
@@ -547,10 +550,14 @@ Get back to your user account that has sudo privileges, and install Nginx:
 sudo apt-get install -y nginx
 ```
 
-Then copy the `feedme-nginx-vhost.conf` file, from the `scripts` directory, to the directory where Nginx's "virtual hosts" are stored:
+Whether you intend to enable HTTPS or not, follow this section.
+
+##### Enable HTTP vhost for your domain/sub-domain
+
+Then copy the `feedme-nginx-http.conf` file, from the `scripts` directory, to the directory where Nginx's "virtual hosts" are stored:
 
 ```
-sudo cp /home/nodejs/feedme-back/scripts/feedme-nginx-vhost.conf /etc/nginx/sites-available/feedme
+sudo cp /home/nodejs/feedme-back/scripts/feedme-nginx-http.conf /etc/nginx/sites-available/feedme
 ```
 
 Create a symbolic link from this file to `/etc/nginx/sites-enabled`, where Nginx's _active_ vhosts are located:
@@ -571,7 +578,142 @@ Reload Nginx's configuration, for these changes to take effect:
 sudo systemctl reload nginx
 ```
 
+You should be able to access your FeedMe instance via `http://feedme.my-domain.com`.
 
+**If you configured the apps to use http**, it should work fine, and you should see product images displayed. You're done, congrats :confetti_ball:!
+
+If you configured them with the `https` prefix, continue on to the next section
+
+##### Enable HTTPS with Let's Encrypt
+
+First, you have to install either [certbot](https://certbot.eff.org/) (official Let's Encrypt client) or [acme.sh](https://github.com/acmesh-official/acme.sh) (a Shell client).
+
+> :warning: Opinionated statement: I don't really like Snap, which is now the default way to install Certbot on Debian/Ubuntu. However, you can still choose _Nginx_ on _Other Linux (pip)_ in the certbot instructions. As for me, I went for acme.sh. That being said, my previous experience with Certbot was fairly good: it has interesting features, like automatic cron setup for certificate renewal, and automatic update of the Nginx vhost.
+
+I'll describe the procedure for acme.sh, but _strongly_ encourage you to carefully read [acme.sh's README](https://github.com/acmesh-official/acme.sh) as you go through each step.
+
+###### 1. Install acme.sh
+
+First, from your account with sudo privileges, login as `root`: `sudo su -`.
+
+Then run this command, **replacing the email with your own, valid email**. This will install acme.sh under the `~/.acme.sh` folder:
+
+```
+curl https://get.acme.sh | sh -s email=admin@my-domain.com
+```
+
+###### 2. Issue a certificate
+
+Run this command, replacing the domain with your own:
+
+```
+.acme.sh/acme.sh --issue -d feedme.my-domain.com -w /var/www/letsencrypt
+```
+
+You should see an output similar to this:
+
+```
+root@debianvm:~# .acme.sh/acme.sh --issue -d feedme.my-domain.com -w /var/www/letsencrypt
+[Fri 05 Mar 2021 07:57:34 AM EST] Using CA: https://acme-v02.api.letsencrypt.org/directory
+[Fri 05 Mar 2021 07:57:34 AM EST] Single domain='feedme.my-domain.com'
+[Fri 05 Mar 2021 07:57:34 AM EST] Getting domain auth token for each domain
+[Fri 05 Mar 2021 07:57:39 AM EST] Getting webroot for domain='feedme.my-domain.com'
+[Fri 05 Mar 2021 07:57:40 AM EST] Verifying: feedme.my-domain.com
+[Fri 05 Mar 2021 07:57:43 AM EST] Pending
+[Fri 05 Mar 2021 07:57:46 AM EST] Success
+[Fri 05 Mar 2021 07:57:46 AM EST] Verify finished, start to sign.
+[Fri 05 Mar 2021 07:57:46 AM EST] Lets finalize the order.
+[Fri 05 Mar 2021 07:57:46 AM EST] Le_OrderFinalize='https://acme-v02.api.letsencrypt.org/acme/finalize/114722983/8269760772'
+[Fri 05 Mar 2021 07:57:48 AM EST] Downloading cert.
+[Fri 05 Mar 2021 07:57:48 AM EST] Le_LinkCert='https://acme-v02.api.letsencrypt.org/acme/cert/0430b7158d58e7ed4f69a6220d52ddbc40c9'
+[Fri 05 Mar 2021 07:57:48 AM EST] Cert success.
+-----BEGIN CERTIFICATE-----
+MIIFHzCCBAegAwIBAgISBDC3FY1Y5+1PaaYiDVLdvEDJMA0GCSqGSIb3DQEBCwUA
+MDIxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQswCQYDVQQD
+EwJSMzAeFw0yMTAzMDUxMTU3NDdaFw0yMTA2MDMxMTU3NDdaMBgxFjAUBgNVBAMT
+DWZlZWRtZS5qc3guZnIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDM
+sKz3L9I6WnNHp3MY/KqKvah6nQixZYo7F8Veuf9lm70+MnvqJlDO78q+eszBFA7v
+8UFi2MwopGG98RE0ZAoFEh5XBZRFoVgOofrnV2bkRhNHJ3hzWMF3dmoLhQlIleoq
+irmiRkEiN5JPeX+ZY/PNtsJEXzs49RyzJSh+6N2qIQqfwpicMIrHm87i9ru/HKjD
+8mBuAYkPCIjnE4fXlb+EETFDLMKfy0uje4mj6cUbgXMr9Ra2AkjbV8YcFG/Ycxce
+4YYa2oy1j0V/fclhk+jdJSdnizgEDiLlX0sCO39YXYTBcjEVc4wCeHKqBB1jC7S/
+WizS+R3BqgOvWU3COrH/AgMBAAGjggJHMIICQzAOBgNVHQ8BAf8EBAMCBaAwHQYD
+VR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMAwGA1UdEwEB/wQCMAAwHQYDVR0O
+BBYEFLPXzLr5o15/hzRmwwyaImSGtCDDMB8GA1UdIwQYMBaAFBQusxe3WFbLrlAJ
+QOYfr52LFMLGMFUGCCsGAQUFBwEBBEkwRzAhBggrBgEFBQcwAYYVaHR0cDovL3Iz
+Lm8ubGVuY3Iub3JnMCIGCCsGAQUFBzAChhZodHRwOi8vcjMuaS5sZW5jci5vcmcv
+MBgGA1UdEQQRMA+CDWZlZWRtZS5qc3guZnIwTAYDVR0gBEUwQzAIBgZngQwBAgEw
+NwYLKwYBBAGC3xMBAQEwKDAmBggrBgEFBQcCARYaaHR0cDovL2Nwcy5sZXRzZW5j
+cnlwdC5vcmcwggEDBgorBgEEAdZ5AgQCBIH0BIHxAO8AdQBElGUusO7Or8RAB9io
+/ijA2uaCvtjLMbU/0zOWtbaBqAAAAXgCdytfAAAEAwBGMEQCIFs3S/C+Rx2JKDAh
+2/mRrjzb0Z7ZvgSxZ7ekUCAaWsdBAiA+jU6d2OdTqlKWnaovn63s906dtTigBw40
+NHmR9Z8EMgB2AH0+8viP/4hVaCTCwMqeUol5K8UOeAl/LmqXaJl+IvDXAAABeAJ3
+K30AAAQDAEcwRQIhAIvrTkUYZgUPhXxAJI321Jr/W6pJGfkrC0917ZOyjRTvAiAT
+UWu5DEI8LLEWrPxGQCp/kiXUHeWAGORkenHxj4qwqzANBgkqhkiG9w0BAQsFAAOC
+AQEAidHu968tovn4/LkIyK1aFy31t4GzZgd7Ojk6PuMGh+S5frJUcViv/ItAdrJC
+vQXwH6IWQhNXLEZrkOELZOQFSEJ/02JvuVHbQzU0Ex7/vWMVCBA5txB1tX6kc+4h
+tpOAwxtiG5miO60L8+oOtxYh4jg6j5J6dETBWWfzb9C8TmGdYl66agR0W0yeRaFg
++vU0NJqk6OdrcUKeoGlSXEKu0Kw3H8S/aEo0hex7kyl9KDz7LY49b3DiG5vfh9jY
+1xlHF+2q/OM87YbFKQfQRA4eq+FNDeEsCi6FIVqN33l5v3Kkc4jgsLtF5MPcY97e
+0/PlDa9teUAA9SGjpimeAcJTww==
+-----END CERTIFICATE-----
+[Fri 05 Mar 2021 07:57:48 AM EST] Your cert is in  /root/.acme.sh/feedme.my-domain.com/feedme.my-domain.com.cer
+[Fri 05 Mar 2021 07:57:48 AM EST] Your cert key is in  /root/.acme.sh/feedme.my-domain.com/feedme.my-domain.com.key
+[Fri 05 Mar 2021 07:57:48 AM EST] The intermediate CA cert is in  /root/.acme.sh/feedme.my-domain.com/ca.cer
+[Fri 05 Mar 2021 07:57:48 AM EST] And the full chain certs is there:  /root/.acme.sh/feedme.my-domain.com/fullchain.cer
+```
+
+Note that paths to the certificate key and certificate file are indicated here, but you **mustn't use them for the next commmand**.
+
+###### 3. Install the certificate
+
+Now, the certificate exists, but you have to configure Nginx to use it.
+
+**First**, and I cannot emphasize this enough, you must **copy** the cert files from the `~/.acme.sh/feedme.my-domain.com` folder to another location. You will lose your certs if you provide their paths to the "install cert" command coming next.
+
+Create a folder under `/var/www/letsencrypt`:
+
+```
+mkdir -p /var/www/letsencrypt/feedme.my-domain.com
+```
+
+Then copy the key file and the fullchain file to their location:
+
+```
+cp /root/.acme.sh/feedme.my-domain.com/feedme.my-domain.com.key /var/www/letsencrypt/feedme.my-domain.com/
+cp /root/.acme.sh/feedme.my-domain.com/fullchain.cer /var/www/letsencrypt/feedme.my-domain.com/
+```
+
+Second, you need to **replace** the vhost created before (intended for HTTP) with another (for HTTPS):
+
+```
+cp /home/nodejs/feedme-back/scripts/feedme-nginx-ssl.conf /etc/nginx/sites-available/feedme
+```
+
+You then need to edit this file to replace all the occurrences of `DOMAIN` with your actual domain. You can do this using this Perl one-liner (replacing `feedme.my-domain.com` with your domain):
+
+```
+perl -pi -e 's/DOMAIN/feedme.my-domain.com/g' /etc/nginx/sites-available/feedme
+```
+
+Last, you can install the certificate files (key and fullchain) by specifying their location, under `/var/www/letsencrypt/feedme.my-domain.com`:
+
+```
+acme.sh --install-cert -d feedme.my-domain.com \
+--key-file       /var/www/letsencrypt/feedme.my-domain.com/feedme.my-domain.com.key  \
+--fullchain-file /var/www/letsencrypt/feedme.my-domain.com/fullchain.cer \
+--reloadcmd     "service nginx force-reload"
+```
+
+That should be it! Congrats if you made it this far!
+
+**We won't cover certificate renewal, but it's explained in the doc.**
+
+## Administration / Maintenance
+
+### Re-deploying after code updates
+
+**WIP**
 
 ## About this repo
 
